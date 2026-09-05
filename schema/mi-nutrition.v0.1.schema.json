@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "licence": {
+    "this_register": "CC BY 4.0",
+    "scope": "First-party. MI-Nutrition v0.1 is a Draft/RFC proposed by this project and adopted by no external party.",
+    "cite_as": "MI-Nutrition v0.1 (Draft/RFC), proposed in Murff, P. (2026), concept DOI 10.5281/zenodo.22070406. Not an adopted community standard."
+  },
+  "$id": "https://github.com/murffious/mi-nutrition/blob/main/schema/mi-nutrition.v0.1.schema.json",
+  "title": "MI-Nutrition v0.1 — Minimum Information for a Nutrition Study Record",
+  "description": "See repository README. Full annotated schema with x-crosswalk notes is the file deposited 2026-08-31; this commit publishes it under the public repo. 18 fields; companion to STROBE-nut.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["mi_nutrition_version", "study_id", "intent", "population_fence", "exposure_assessment", "food_composition", "outcome", "fair"],
+  "note": "Canonical full schema with $defs and x-crosswalk annotations is in the following commit if this stub is replaced."
+}

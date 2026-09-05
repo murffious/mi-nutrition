@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "MI-Nutrition v0.1 (Draft/RFC)"
+message: "Not an adopted community standard. Cite the concept DOI for the paper."
+type: software
+authors:
+  - family-names: Murff
+    given-names: Paul
+    affiliation: Morf Engineering Inc.
+repository-code: "https://github.com/murffious/mi-nutrition"
+license: CC-BY-4.0
+version: "0.1"
+date-released: "2026-09-05"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.22070406"
+    description: Concept DOI of the Nine-Layer Framework working paper

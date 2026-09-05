@@ -1,0 +1,128 @@
+{
+  "_note": "ILLUSTRATIVE TEMPLATE, not an extracted study. Every value is a placeholder showing the required shape. Do not cite. Replace all <...> before use.",
+  "mi_nutrition_version": "0.1",
+  "study_id": "pmid:<pmid>",
+  "title": "<paper title>",
+  "year": 2026,
+  "intent": {
+    "value_lane": "reversal",
+    "study_value_hypothesis": "<one falsifiable sentence naming the decision this study was designed to inform>",
+    "typed_contrast": {
+      "type": "arm_vs_control",
+      "label": "<intervention arm vs usual-care control>",
+      "high_level": "<intervention description>",
+      "low_level": "<comparator description>"
+    }
+  },
+  "population_fence": {
+    "criteria": {
+      "inclusion": [
+        {
+          "text": "<inclusion criterion>",
+          "variable": "age",
+          "operator": "range",
+          "value": [18, 65],
+          "unit": "years"
+        }
+      ],
+      "exclusion": [
+        {
+          "text": "<exclusion criterion>",
+          "variable": "<variable>",
+          "operator": "=",
+          "value": true
+        }
+      ]
+    },
+    "fence_summary": "<short declarative fence>",
+    "generalizability_note": {
+      "do_not_apply_to": ["<population the estimate does not transfer to>"],
+      "note": "<authors' statement>"
+    },
+    "n_total": 1,
+    "country": ["US"],
+    "sex": "mixed",
+    "age_range": "<18-65>"
+  },
+  "exposure_assessment": {
+    "methods": [
+      {
+        "instrument": "<ASA24 | DHQ-III | named FFQ | 24-h recall | weighed record | ID-LC-MS/MS>",
+        "version_or_citation": "<exact version string or validation citation>",
+        "n_days": 1,
+        "n_administrations": 1,
+        "validated_in_study_population": false,
+        "misreporting_handling": "<rule or none>"
+      }
+    ],
+    "portion_and_administration": {
+      "portion_size_method": "<household measures | photographic atlas | weighed | standard portions | NA>",
+      "administration": "other",
+      "quality_assurance": "<or NA for analytical methods papers>"
+    },
+    "supplements": {
+      "assessed": false,
+      "included_in_nutrient_totals": false,
+      "method": "<or not_food_study>"
+    }
+  },
+  "food_composition": {
+    "database": {
+      "name": "<USDA FoodData Central | McCance & Widdowson | NEVO | NA>",
+      "version": "<exact release string>",
+      "release_date": "2025-01-01",
+      "url": "https://example.org"
+    },
+    "matching_procedure": {
+      "description": "<how consumed foods were matched, or NA for serum-only methods papers>",
+      "raw_to_cooked_factors": false,
+      "retention_factors": false,
+      "yield_factors": false,
+      "recipe_disaggregation": false
+    },
+    "imputation": {
+      "any_imputed": false,
+      "method": "<required if any_imputed is true>",
+      "share_imputed": 0,
+      "provenance_flag_present": false,
+      "affected_nutrients": []
+    }
+  },
+  "outcome": {
+    "primary_endpoints": [
+      {
+        "label": "<endpoint label>",
+        "endpoint_type": "biomarker",
+        "ascertainment": "<how measured>"
+      }
+    ],
+    "effect_estimates": [
+      {
+        "endpoint": "<must match an Endpoint.label>",
+        "metric": "md",
+        "value": 0,
+        "ci_low": 0,
+        "ci_high": 0,
+        "ci_level": 0.95,
+        "n_analysed": 0,
+        "evidence_span": "<verbatim sentence from the paper>"
+      }
+    ],
+    "statistical_model": {
+      "adjusted_for": [],
+      "energy_adjustment": "not_reported",
+      "measurement_error_correction": false,
+      "model": "<or not_reported>"
+    }
+  },
+  "fair": {
+    "data_availability": {
+      "status": "not_available",
+      "reason_if_unavailable": "<template record>"
+    },
+    "code_availability": {
+      "status": "not_available"
+    },
+    "ontology_crosswalks": []
+  }
+}

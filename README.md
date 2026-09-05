@@ -46,6 +46,7 @@ Value-lane typing and the study value hypothesis have no counterpart in the six 
 | [`examples/template.v0.1.json`](examples/template.v0.1.json) | Shape only. Placeholders. Do not cite as a study. |
 | [`docs/FIELDS.md`](docs/FIELDS.md) | 18-field list vs STROBE-nut |
 | [`docs/STATUS.md`](docs/STATUS.md) | Adoption status of *this* artifact, and where it sits in the Nine-Layer stack |
+| [`docs/FIP.md`](docs/FIP.md) | FAIR Implementation Profile — what this repo already does for F/A/I/R, not a score |
 | [`paper/Nine-Layer-Framework-Working-Paper-v1.4.pdf`](paper/Nine-Layer-Framework-Working-Paper-v1.4.pdf) | Working paper this schema is proposed in. Zenodo (concept DOI above) is the citable, versioned record; this copy is for convenience. |
 
 ## Conformance

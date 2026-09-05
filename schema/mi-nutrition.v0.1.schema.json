@@ -2,14 +2,905 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "licence": {
     "this_register": "CC BY 4.0",
-    "scope": "First-party. MI-Nutrition v0.1 is a Draft/RFC proposed by this project and adopted by no external party.",
+    "scope": "First-party. MI-Nutrition v0.1 is a Draft/RFC proposed by this project and adopted by no external party. The x-crosswalk annotations record where a field matches an existing standard (EN 16104/EuroFIR, STROBE) and where it does not; they describe those standards without reproducing them. Two of the five headline fields are convergence on prior art, not invention, and the annotations say which.",
+    "attribution_required": [],
     "cite_as": "MI-Nutrition v0.1 (Draft/RFC), proposed in Murff, P. (2026), concept DOI 10.5281/zenodo.22070406. Not an adopted community standard."
   },
-  "$id": "https://github.com/murffious/mi-nutrition/blob/main/schema/mi-nutrition.v0.1.schema.json",
+  "$id": "mi-nutrition/v0.1/schema",
   "title": "MI-Nutrition v0.1 — Minimum Information for a Nutrition Study Record",
-  "description": "See repository README. Full annotated schema with x-crosswalk notes is the file deposited 2026-08-31; this commit publishes it under the public repo. 18 fields; companion to STROBE-nut.",
+  "description": "Machine-readable companion to STROBE-nut, modelled on MIAME. 18 fields; 14 required. Scope: the translation layer that existing standards leave empty — explicit value lane, population fence, typed contrast, composition-database version, and imputation provenance. Not a replacement for STROBE-nut, FoodOn/CDNO, ONE/ONS or SEPIO; every field is annotated with what it binds to. Fields already carried by the platform StudyRecord are annotated with x-studyrecord pointers into outcome-schema.json.",
   "type": "object",
   "additionalProperties": true,
-  "required": ["mi_nutrition_version", "study_id", "intent", "population_fence", "exposure_assessment", "food_composition", "outcome", "fair"],
-  "note": "Canonical full schema with $defs and x-crosswalk annotations is in the following commit if this stub is replaced."
+  "required": [
+    "mi_nutrition_version",
+    "study_id",
+    "intent",
+    "population_fence",
+    "exposure_assessment",
+    "food_composition",
+    "outcome",
+    "fair"
+  ],
+  "properties": {
+    "mi_nutrition_version": {
+      "const": "0.1",
+      "description": "Version of the MI-Nutrition checklist this record claims conformance to."
+    },
+    "study_id": {
+      "type": "string",
+      "pattern": "^(pmid|doi|preprint|nct|isrctn):",
+      "description": "Resolvable identifier, e.g. pmid:29221645 or doi:10.1016/S0140-6736(17)33102-1.",
+      "x-studyrecord": "#/$defs/StudyRecord/properties/study_id"
+    },
+    "title": {
+      "type": "string",
+      "x-studyrecord": "#/$defs/StudyRecord/properties/title"
+    },
+    "year": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2100
+    },
+    "intent": {
+      "type": "object",
+      "title": "1. Study intent and value lane",
+      "description": "The distinctive contribution: what decision this study was built to inform, and what was actually compared.",
+      "required": [
+        "value_lane",
+        "study_value_hypothesis",
+        "typed_contrast"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "value_lane": {
+          "x-mi-field": 1,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": false,
+          "type": "string",
+          "enum": [
+            "prevention",
+            "treatment",
+            "reversal",
+            "other"
+          ],
+          "description": "Which clinical/public-health lane the result is licensed for. 'reversal' means restoring a diagnosed state to non-diseased, not risk reduction.",
+          "x-crosswalk": [
+            {
+              "predicate": "skos:noMatch",
+              "target": null,
+              "evidence": null,
+              "note": "Genuine residual. No counterpart found in ONS, STROBE-nut, EN 16104/EuroFIR, FAO/INFOODS, CDISC SDTM ML or HL7 FHIR (funder_gate.md field-by-field test, 2026-08-31). Maps to L7 Translation/scope, nutrition's lowest-scoring layer — which is why nothing upstream reaches it."
+            }
+          ]
+        },
+        "value_lane_other": {
+          "type": "string",
+          "description": "Required free text when value_lane = other."
+        },
+        "study_value_hypothesis": {
+          "x-mi-field": 2,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": false,
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 400,
+          "description": "One falsifiable sentence naming the decision the study was designed to inform.",
+          "x-crosswalk": [
+            {
+              "predicate": "skos:noMatch",
+              "target": null,
+              "evidence": null,
+              "note": "Genuine residual. STROBE-nut Item 3 states a generic scientific hypothesis, not a value or utility hypothesis, so it is not a match. Same six-standard test as value_lane; also L7."
+            }
+          ]
+        },
+        "typed_contrast": {
+          "x-mi-field": 3,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": "partial",
+          "x-studyrecord": "#/$defs/ExposureContrast",
+          "$ref": "#/$defs/TypedContrast"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value_lane": {
+                "const": "other"
+              }
+            },
+            "required": [
+              "value_lane"
+            ]
+          },
+          "then": {
+            "required": [
+              "value_lane_other"
+            ]
+          }
+        }
+      ]
+    },
+    "population_fence": {
+      "type": "object",
+      "title": "2. Population fence",
+      "description": "The scope boundary. Downstream systems must not apply the estimate outside it.",
+      "required": [
+        "criteria",
+        "fence_summary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "criteria": {
+          "x-mi-field": 4,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": "partial",
+          "type": "object",
+          "required": [
+            "inclusion"
+          ],
+          "properties": {
+            "inclusion": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/Criterion"
+              }
+            },
+            "exclusion": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Criterion"
+              }
+            }
+          }
+        },
+        "fence_summary": {
+          "x-mi-field": 5,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": false,
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 300,
+          "description": "Short machine-readable fence, e.g. 'T2D duration <6 y, BMI 27-45, not insulin-dependent'.",
+          "x-crosswalk": [
+            {
+              "predicate": "skos:closeMatch",
+              "target": "STROBE Item 21 (generalisability / external validity)",
+              "evidence": null,
+              "note": "Not novel as a concept. STROBE Item 21 asks authors to 'discuss the generalisability (external validity) of the study results' as free-text discussion. The contribution here is that it is STRUCTURED and DECLARATIVE, not that the concept is new. The term 'population fence' is this project's coinage; the concept is not."
+            }
+          ]
+        },
+        "generalizability_note": {
+          "x-mi-field": 6,
+          "x-requirement": "recommended",
+          "type": "object",
+          "properties": {
+            "do_not_apply_to": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "description": "Populations the authors state the finding should NOT be applied to."
+        },
+        "n_total": {
+          "type": "integer",
+          "minimum": 1,
+          "x-studyrecord": "#/$defs/Population/properties/n_total"
+        },
+        "country": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2"
+          }
+        },
+        "age_range": {
+          "type": "string"
+        },
+        "sex": {
+          "type": "string",
+          "enum": [
+            "female",
+            "male",
+            "mixed",
+            "other",
+            "not_reported"
+          ]
+        }
+      }
+    },
+    "exposure_assessment": {
+      "type": "object",
+      "title": "3. Exposure / dietary assessment",
+      "required": [
+        "methods",
+        "portion_and_administration",
+        "supplements"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "methods": {
+          "x-mi-field": 7,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": true,
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/AssessmentMethod"
+          }
+        },
+        "portion_and_administration": {
+          "x-mi-field": 8,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": true,
+          "type": "object",
+          "required": [
+            "portion_size_method",
+            "administration"
+          ],
+          "properties": {
+            "portion_size_method": {
+              "type": "string",
+              "description": "How portions were estimated: household measures, photographic atlas, weighed, standard portions, other."
+            },
+            "administration": {
+              "type": "string",
+              "enum": [
+                "interviewer_administered",
+                "self_administered",
+                "mixed",
+                "observed_weighed",
+                "other"
+              ]
+            },
+            "quality_assurance": {
+              "type": "string"
+            }
+          }
+        },
+        "supplements": {
+          "x-mi-field": 9,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": "partial",
+          "type": "object",
+          "required": [
+            "assessed",
+            "included_in_nutrient_totals"
+          ],
+          "properties": {
+            "assessed": {
+              "type": "boolean"
+            },
+            "included_in_nutrient_totals": {
+              "type": "boolean"
+            },
+            "method": {
+              "type": "string"
+            }
+          },
+          "description": "Whether supplements were assessed and whether they are inside the reported nutrient totals. Silence here is the single most common cause of non-comparable intakes."
+        }
+      }
+    },
+    "food_composition": {
+      "type": "object",
+      "title": "4. Food composition / metrology",
+      "description": "Either a named composition database with an exact version, or primary analytical measurement. One of the two is mandatory.",
+      "required": [
+        "matching_procedure",
+        "imputation"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "database"
+          ]
+        },
+        {
+          "required": [
+            "primary_analysis"
+          ]
+        }
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "database": {
+          "x-mi-field": 10,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": "partial",
+          "type": "object",
+          "required": [
+            "name",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "e.g. USDA FoodData Central, McCance & Widdowson, NEVO, Nutritionist Pro."
+            },
+            "version": {
+              "type": "string",
+              "description": "Exact release string. 'USDA' alone fails this field."
+            },
+            "release_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "primary_analysis": {
+          "x-mi-field": 10,
+          "type": "object",
+          "required": [
+            "analytical_methods"
+          ],
+          "properties": {
+            "analytical_methods": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            },
+            "reference_materials": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "e.g. NIST SRM 1849a."
+              }
+            },
+            "laboratory": {
+              "type": "string"
+            }
+          }
+        },
+        "matching_procedure": {
+          "x-mi-field": 11,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": true,
+          "type": "object",
+          "required": [
+            "description"
+          ],
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "How consumed foods were matched to composition entries."
+            },
+            "raw_to_cooked_factors": {
+              "type": "boolean"
+            },
+            "retention_factors": {
+              "type": "boolean"
+            },
+            "yield_factors": {
+              "type": "boolean"
+            },
+            "recipe_disaggregation": {
+              "type": "boolean"
+            }
+          }
+        },
+        "imputation": {
+          "x-mi-field": 12,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": false,
+          "type": "object",
+          "required": [
+            "any_imputed"
+          ],
+          "properties": {
+            "any_imputed": {
+              "type": "boolean"
+            },
+            "method": {
+              "type": "string",
+              "description": "e.g. borrowed from similar food, calculated from recipe, zero-filled, donor database."
+            },
+            "share_imputed": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Fraction of nutrient values that are imputed rather than measured."
+            },
+            "provenance_flag_present": {
+              "type": "boolean",
+              "description": "True if the released dataset carries a per-value measured-vs-imputed flag."
+            },
+            "affected_nutrients": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "any_imputed": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "any_imputed"
+                ]
+              },
+              "then": {
+                "required": [
+                  "method"
+                ]
+              }
+            }
+          ],
+          "x-crosswalk": [
+            {
+              "predicate": "skos:exactMatch",
+              "target": "EN 16104:2012 / EuroFIR Acquisition Type + Value Type + Method Type",
+              "evidence": "10.1016/j.jfca.2021.103968",
+              "note": "NOT a novel field. EuroFIR's Method Type describes how a value was obtained, including imputation, with coded cases such as 'value borrowed from food ID x'; USDA FoodData Central records the same through its food_nutrient_derivation table. MI-Nutrition converges on these rather than inventing. The sibling annotation x-covered-by-strobe-nut:false is true and says only that STROBE-nut does not cover it — read alone it invites the novelty claim this entry forbids."
+            }
+          ]
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "title": "5. Outcomes, effect estimate and provenance",
+      "required": [
+        "primary_endpoints",
+        "effect_estimates"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "primary_endpoints": {
+          "x-mi-field": 13,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": "partial",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Endpoint"
+          }
+        },
+        "effect_estimates": {
+          "x-mi-field": 14,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": "partial",
+          "x-studyrecord": "#/$defs/EffectEstimate",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/EffectEstimate"
+          }
+        },
+        "statistical_model": {
+          "x-mi-field": 15,
+          "x-requirement": "recommended",
+          "type": "object",
+          "properties": {
+            "adjusted_for": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "energy_adjustment": {
+              "type": "string",
+              "enum": [
+                "none",
+                "standard_multivariate",
+                "residual",
+                "nutrient_density",
+                "partition",
+                "not_reported"
+              ]
+            },
+            "measurement_error_correction": {
+              "type": "boolean"
+            },
+            "model": {
+              "type": "string",
+              "description": "e.g. Cox proportional hazards, mixed-effects ANCOVA."
+            }
+          }
+        }
+      }
+    },
+    "fair": {
+      "type": "object",
+      "title": "6. FAIR / reuse",
+      "required": [
+        "data_availability"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "data_availability": {
+          "x-mi-field": 16,
+          "x-requirement": "required",
+          "x-covered-by-strobe-nut": "partial",
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "open",
+                "on_request",
+                "restricted_access",
+                "not_available"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "codebook_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "reason_if_unavailable": {
+              "type": "string"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "not_available"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "required": [
+                  "reason_if_unavailable"
+                ]
+              }
+            }
+          ]
+        },
+        "code_availability": {
+          "x-mi-field": 17,
+          "x-requirement": "recommended",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "open",
+                "on_request",
+                "not_available"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "protocol_url": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "ontology_crosswalks": {
+          "x-mi-field": 18,
+          "x-requirement": "recommended",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Crosswalk"
+          },
+          "description": "Identifiers applied from the mature vocabulary layer. Binding here is what keeps MI-Nutrition additive rather than competitive."
+        }
+      }
+    },
+    "conformance": {
+      "type": "object",
+      "description": "Emitted by the validator, not by the author.",
+      "properties": {
+        "required_fields_present": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 14
+        },
+        "recommended_fields_present": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "none",
+            "core",
+            "full"
+          ]
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "TypedContrast": {
+      "type": "object",
+      "required": [
+        "type",
+        "label"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "quantile_extremes",
+            "per_unit_increase",
+            "per_sd_increase",
+            "arm_vs_control",
+            "presence_vs_absence",
+            "dose_response_curve",
+            "other"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "e.g. 'highest vs lowest quintile of rEDIH'."
+        },
+        "unit": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "high_level": {
+          "type": "string"
+        },
+        "low_level": {
+          "type": "string"
+        },
+        "exposure_ref": {
+          "$ref": "#/$defs/Crosswalk"
+        }
+      }
+    },
+    "Criterion": {
+      "type": "object",
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "variable": {
+          "type": "string",
+          "description": "e.g. bmi, age, hba1c, diabetes_duration_years."
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "<",
+            "<=",
+            "=",
+            "!=",
+            ">=",
+            ">",
+            "in",
+            "not_in",
+            "range"
+          ]
+        },
+        "value": {},
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+    "AssessmentMethod": {
+      "type": "object",
+      "required": [
+        "instrument",
+        "version_or_citation"
+      ],
+      "properties": {
+        "instrument": {
+          "type": "string",
+          "description": "e.g. ASA24, DHQ-III, Willett FFQ, 24-h recall, weighed food record, FoodSeq."
+        },
+        "version_or_citation": {
+          "type": "string",
+          "description": "Version string or validation citation. Bare instrument names fail this field."
+        },
+        "n_days": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "n_administrations": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "validated_in_study_population": {
+          "type": "boolean"
+        },
+        "misreporting_handling": {
+          "type": "string"
+        }
+      }
+    },
+    "Endpoint": {
+      "type": "object",
+      "required": [
+        "label",
+        "endpoint_type"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "endpoint_type": {
+          "type": "string",
+          "enum": [
+            "hard_clinical",
+            "intermediate",
+            "surrogate",
+            "patient_reported",
+            "biomarker"
+          ]
+        },
+        "surrogate_justification": {
+          "type": "string"
+        },
+        "outcome_ref": {
+          "$ref": "#/$defs/Crosswalk"
+        },
+        "ascertainment": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "endpoint_type": {
+                "const": "surrogate"
+              }
+            },
+            "required": [
+              "endpoint_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "surrogate_justification"
+            ]
+          }
+        }
+      ]
+    },
+    "EffectEstimate": {
+      "type": "object",
+      "required": [
+        "endpoint",
+        "metric",
+        "value",
+        "ci_low",
+        "ci_high"
+      ],
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "Must match an Endpoint.label."
+        },
+        "metric": {
+          "type": "string",
+          "enum": [
+            "hr",
+            "rr",
+            "or",
+            "md",
+            "smd",
+            "beta",
+            "risk_difference",
+            "percent_change",
+            "other"
+          ]
+        },
+        "value": {
+          "type": "number"
+        },
+        "ci_low": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "ci_high": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "ci_level": {
+          "type": "number",
+          "default": 0.95
+        },
+        "unit": {
+          "type": "string"
+        },
+        "p_value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "n_analysed": {
+          "type": "integer"
+        },
+        "evidence_span": {
+          "type": "string",
+          "description": "Verbatim source sentence the numbers were read from."
+        }
+      }
+    },
+    "Crosswalk": {
+      "type": "object",
+      "required": [
+        "system",
+        "id"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "enum": [
+            "FoodOn",
+            "CDNO",
+            "ONE",
+            "ONS",
+            "SEPIO",
+            "PROV-O",
+            "LOINC",
+            "SNOMED",
+            "FoodEx2",
+            "FDC",
+            "ChEBI",
+            "MeSH",
+            "other"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "applies_to": {
+          "type": "string",
+          "description": "JSON pointer into this record."
+        }
+      }
+    }
+  },
+  "as_of": "2026-08-31",
+  "revision": 1,
+  "revision_note": "Content revision. Revision 1 (2026-08-31) adds the licence block and the x-crosswalk annotations recording that two of the five headline fields converge on prior art (imputation -> EN 16104/EuroFIR exactMatch; fence_summary -> STROBE Item 21 closeMatch) rather than being novel."
 }

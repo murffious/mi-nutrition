@@ -1,5 +1,3 @@
-The file `mi-nutrition.v0.1.schema.json` in this folder is the v0.1 schema.
+The file `mi-nutrition.v0.1.schema.json` in this folder is the canonical v0.1 schema: full annotated JSON Schema (2020-12) with `$defs` and `x-crosswalk` notes recording where each field converges on an existing standard (EN 16104/EuroFIR, STROBE) and where it does not.
 
-If you need the fully annotated copy with `$defs`, `x-crosswalk`, and EuroFIR/STROBE notes (the 2026-08-31 revision), use the version in this repository after it is replaced, or the copy shipped with the working paper materials.
-
-Do not treat a short stub as the validator target.
+Content revision 1, as of 2026-08-31 (see `revision_note` inside the schema file).
